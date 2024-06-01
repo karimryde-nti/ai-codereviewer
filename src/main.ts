@@ -53,8 +53,9 @@ async function getDiff(
     pull_number,
     mediaType: { format: "diff" },
   });
-  // @ts-expect-error - response.data is a string
-  return response.data;
+
+  // Konvertera response.data till en sträng om det inte redan är det
+  return typeof response.data === "string" ? response.data : JSON.stringify(response.data);
 }
 
 async function analyzeCode(
@@ -65,14 +66,14 @@ async function analyzeCode(
   const comments: Array<{ body: string; path: string; line: number }> = [];
 
   for (const file of parsedDiff) {
-    if (file.to === "/dev/null") continue; // Ignore deleted files
+    if (file.to === "/dev/null") continue; // Ignorera raderade filer
     for (const chunk of file.chunks) {
       const prompt = createPrompt(file, chunk, prDetails, customPrompts);
       const aiResponse = await getAIResponse(prompt);
 
-      console.log(`Prompt = ${prompt}`)
-      console.log(`Response: ${aiResponse}`)
-      console.log("---------")
+      console.log(`Prompt = ${prompt}`);
+      console.log(`Response: ${aiResponse}`);
+      console.log("---------");
 
       if (aiResponse) {
         const newComments = createComment(file, chunk, aiResponse);
@@ -110,8 +111,7 @@ Git diff to review:
 \`\`\`diff
 ${chunk.content}
 ${chunk.changes
-      // @ts-expect-error - ln and ln2 exists where needed
-      .map((c) => `${c.ln ? c.ln : c.ln2} ${c.content}`)
+      .map((c) => `${'ln' in c ? c.ln : c.ln2} ${c.content}`)
       .join("\n")}
 \`\`\`
 `;
@@ -133,7 +133,6 @@ async function getAIResponse(prompt: string): Promise<Array<{
   try {
     const response = await openai.chat.completions.create({
       ...queryConfig,
-      // return JSON if the model supports it:
       ...(OPENAI_API_MODEL === "gpt-4o" || OPENAI_API_MODEL === "gpt-4-turbo-preview" || OPENAI_API_MODEL === "gpt-4-turbo" || OPENAI_API_MODEL === "gpt-3.5-turbo" || OPENAI_API_MODEL === "gpt-4-0125-preview" || OPENAI_API_MODEL === "gpt-4-1106-preview" || OPENAI_API_MODEL === "gpt-3.5-turbo-0125" || OPENAI_API_MODEL === "gpt-3.5-turbo-1106"
         ? { response_format: { type: "json_object" } }
         : {}),
@@ -242,7 +241,7 @@ async function main() {
 
   const customPrompts = core.getMultilineInput("custom_prompts")
     .map(customPrompt => `- ${customPrompt}`)
-    .join("\n")
+    .join("\n");
 
   const comments = await analyzeCode(filteredDiff, prDetails, customPrompts);
   if (comments.length > 0) {

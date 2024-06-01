@@ -1,12 +1,12 @@
 {
   "compilerOptions": {
-    "target": "es6",
-    "module": "commonjs",
-    "outDir": "./lib",
-    "rootDir": "./src",
+    "target": "ES2015",                          // För att stödja privata identifierare
+    "module": "commonjs",                        // För kompatibilitet med Node.js-moduler
+    "outDir": "./dist",                          // Output-katalog för kompilerade filer
+    "esModuleInterop": true,                     // För att möjliggöra default-import med `export =`
+    "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "noImplicitAny": true,
-    "esModuleInterop": true
+    "skipLibCheck": true
   },
-  "exclude": ["node_modules", "**/*.test.ts"]
+  "include": ["src/**/*"]
 }

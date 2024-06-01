@@ -186,6 +186,18 @@ function createReviewComment(owner, repo, pull_number, comments) {
 function main() {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
+        // Lägg till Octokit-testet här
+        try {
+            const { data: repo } = yield octokit.repos.get({
+                owner: "karimryde-nti",
+                repo: "AI-code-review"
+            });
+            console.log(`Repository found: ${repo.full_name}`);
+        }
+        catch (error) {
+            console.error("Error fetching repository:", error);
+            process.exit(1);
+        }
         const prDetails = yield getPRDetails();
         let diff;
         const eventData = JSON.parse((0, fs_1.readFileSync)((_a = process.env.GITHUB_EVENT_PATH) !== null && _a !== void 0 ? _a : "", "utf8"));

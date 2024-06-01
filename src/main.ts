@@ -189,6 +189,18 @@ async function createReviewComment(
 }
 
 async function main() {
+  // Lägg till Octokit-testet här
+  try {
+    const { data: repo } = await octokit.repos.get({
+      owner: "karimryde-nti",
+      repo: "AI-code-review"
+    });
+    console.log(`Repository found: ${repo.full_name}`);
+  } catch (error) {
+    console.error("Error fetching repository:", error);
+    process.exit(1);
+  }
+
   const prDetails = await getPRDetails();
   let diff: string | null;
   const eventData = JSON.parse(
